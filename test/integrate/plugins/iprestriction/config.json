@@ -1,0 +1,91 @@
+{
+	"servers":[
+		{
+			"default_log_path":"stdout",
+			"default_log_level": "DEBUG",
+			"routers":[
+				{
+					"router_config_name":"server_router",
+					"virtual_hosts":[{
+						"name":"serverVhost",
+						"domains": ["*"],
+						"routers": [
+							{
+								"match":{"prefix":"/"},
+								"route":{"cluster_name":"serverCluster"},
+								"per_filter_config": {
+									"ip_restriction": {
+										"allow": [],
+										"deny": ["1.1.1.3"]
+									}
+								}
+							}
+						],
+						"per_filter_config": {
+							"ip_restriction": {
+								"allow": [],
+								"deny": ["1.1.1.2"]
+							}
+						}
+					}]
+				}
+			],
+			"listeners":[
+				{
+					"name":"serverListener",
+					"address": "127.0.0.1:2046",
+					"bind_port": true,
+					"access_logs": [
+						{
+							"log_path": "./logs/access.log",
+							"log_format": "[%start_time%] %request_received_duration% %response_received_duration% %bytes_sent% %bytes_received% %protocol% %response_code% %duration% %response_flag% %response_code% %upstream_local_address% %downstream_local_address% %downstream_remote_address% %upstream_host% %upstream_transport_failure_reason% %upstream_cluster%"
+						}
+					],
+					"filter_chains": [{
+						"filters": [
+							{
+								"type": "proxy",
+								"config": {
+									"downstream_protocol": "Auto",
+									"upstream_protocol": "Auto",
+									"router_config_name":"server_router"
+								}
+							}
+						]
+					}],
+					"stream_filters": [
+						{
+							"type":"ip_restriction",
+							"config": {
+								"allow": [],
+								"deny": ["1.1.1.1"]
+							}
+						}
+					]
+				}
+			]
+		}
+	],
+	"cluster_manager":{
+		"clusters":[
+			{
+				"name":"serverCluster",
+				"type": "SIMPLE",
+				"lb_type": "LB_RANDOM",
+				"max_request_per_conn": 1024,
+				"conn_buffer_limit_bytes":32768,
+				"hosts":[
+					{"address":"127.0.0.1:8080"}
+				]
+			}
+		]
+	},
+	"admin": {
+		"address": {
+			"socket_address": {
+				"address": "0.0.0.0",
+				"port_value": 34901
+			}
+		}
+	}
+}

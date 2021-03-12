@@ -2,7 +2,7 @@ package iprestriction
 
 import (
 	"context"
-	"github.com/machine3/mosn-extensions/pkg/filter/stream/iprestriction/ipmatcher"
+	"github.com/machine3/mosn-extensions/pkg/plugins/iprestriction/ipmatcher"
 	"mosn.io/api"
 	"mosn.io/pkg/buffer"
 	"mosn.io/pkg/log"
@@ -31,6 +31,8 @@ func newStreamFilter(conf *config) *streamFilter {
 
 func (f *streamFilter) SetReceiveFilterHandler(handler api.StreamReceiverFilterHandler) {
 	f.handler = handler
+	//routeConfig := f.handler.Route().RouteRule().PerFilterConfig()
+	//vHostConfig := f.handler.Route().RouteRule().VirtualHost().PerFilterConfig()
 }
 
 // OnReceive creates resource and judges whether current request should be blocked.
